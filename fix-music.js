@@ -1,3 +1,4 @@
+// Vercel build trigger: publish the Play Our Music welcome screen before the surprise.
 const fs = require('fs');
 const path = require('path');
 const file = path.join(__dirname, 'public', 'index.html');
