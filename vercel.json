@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "buildCommand": "mkdir -p public && unzip -o nithimaa-birthday-upload-ready.zip -d public",
+  "outputDirectory": "public",
+  "installCommand": ""
+}
