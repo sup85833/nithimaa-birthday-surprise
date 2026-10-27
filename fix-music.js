@@ -1,17 +1,45 @@
 const fs = require('fs');
 const path = require('path');
-
 const file = path.join(__dirname, 'public', 'index.html');
 let html = fs.readFileSync(file, 'utf8');
 
-const css = '<style id="music-welcome-style">#music-welcome{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 35%,#30205b 0%,#120d2c 48%,#050510 100%);color:#fff;text-align:center;font-family:Georgia,serif}#music-welcome:before{content:"✦ · ✧ · ✦";position:absolute;top:12%;left:0;right:0;color:#f4d9ff;letter-spacing:.8em}#music-welcome-card{width:min(460px,100%);padding:34px 24px;border:1px solid rgba(255,220,255,.35);border-radius:28px;background:rgba(255,255,255,.06);box-shadow:0 0 70px rgba(191,125,255,.18)}#music-welcome .mw-kicker{font:11px Arial,sans-serif;letter-spacing:.25em;text-transform:uppercase;color:#e3c7ff}#music-welcome h1{font-size:clamp(32px,8vw,48px);font-weight:400;line-height:1.1;margin:18px 0 12px}#music-welcome p{font:15px/1.7 Arial,sans-serif;color:#e7def5;margin:0 auto 24px;max-width:300px}#music-welcome-button{border:0;border-radius:999px;padding:16px 24px;min-height:54px;background:linear-gradient(100deg,#f6cce8,#e5c8ff);color:#25143d;font:700 14px Arial,sans-serif;cursor:pointer}#music-welcome-button:disabled{opacity:.7}#music-welcome-error{min-height:20px;margin-top:14px;color:#ffd9e8;font:12px/1.5 Arial,sans-serif}#music-welcome .mw-heart{font-size:25px;color:#ffc9e8;margin-top:20px}</style>';
-const markup = '<div id="music-welcome" role="dialog" aria-modal="true" aria-labelledby="music-welcome-title"><div id="music-welcome-card"><div class="mw-kicker">A little surprise, made with love</div><h1 id="music-welcome-title">For my Nithimaa ✨</h1><p>Before anything else, let our song play. This little universe is all for you.</p><button id="music-welcome-button" type="button">▶ &nbsp; PLAY OUR MUSIC</button><div id="music-welcome-error" aria-live="polite"></div><div class="mw-heart">♡</div></div></div>';
-const script = '<script id="music-welcome-script">(function(){const cover=document.getElementById("music-welcome"),button=document.getElementById("music-welcome-button"),message=document.getElementById("music-welcome-error"),song=document.getElementById("song");if(!cover||!button||!song)return;document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden";button.addEventListener("click",async function(){button.disabled=true;button.textContent="♪ STARTING OUR SONG…";message.textContent="";try{song.volume=0.9;if(!song.currentSrc||song.networkState===HTMLMediaElement.NETWORK_EMPTY)song.load();await song.play();cover.style.transition="opacity .8s ease";cover.style.opacity="0";window.setTimeout(function(){cover.remove();document.documentElement.style.overflow="";document.body.style.overflow="";},820);}catch(error){button.disabled=false;button.textContent="▶ TRY PLAYING OUR MUSIC AGAIN";message.textContent="The song could not start. Tap once more or check your device volume.";console.error("Welcome music failed to play:",error);}});})();</script>';
-
-if (!html.includes('id="song"')) throw new Error('The birthday song element #song was not found in index.html');
-if (!html.includes('id="music-welcome"')) html = html.replace(/<body([^>]*)>/i, '<body$1>' + markup);
-if (!html.includes('id="music-welcome-style"')) html = html.replace('</head>', css + '</head>');
-if (!html.includes('id="music-welcome-script"')) html = html.replace(/<\/body>/i, script + '</body>');
-if (!html.includes('id="music-welcome"') || !html.includes('id="music-welcome-script"')) throw new Error('Could not insert the music welcome screen into index.html');
-fs.writeFileSync(file, html);
-console.log('Birthday music welcome screen added successfully.');
+const extra = `
+<style id="forever-choice-style">
+#music-toggle{display:none!important}
+#forever-choice{margin:18px auto 0;text-align:center}
+#forever-choice h3{font-size:clamp(20px,4vw,28px);color:#fff;margin:0 0 20px}
+#forever-choice .choices{display:flex;justify-content:center;gap:18px;min-height:55px;position:relative}
+#forever-choice button{border:0;border-radius:999px;padding:13px 25px;font-weight:700;font-size:16px;cursor:pointer}
+#forever-yes{background:linear-gradient(100deg,#bb70ff,#ed77ca);color:#fff}
+#forever-no{background:#33264f;color:#fff;border:1px solid #9d86ba}
+#forever-answer{margin-top:20px;color:#ff9acb;font-size:22px;font-weight:700;line-height:1.5}
+#forever-answer span{display:block;color:#ff214f;font-size:68px}
+</style>`;
+const script = `
+<script id="forever-choice-script">
+(function(){
+ function setup(){
+  const all=[...document.querySelectorAll('button,a,[role="button"]')];
+  const cta=all.find(el=>(el.textContent||'').trim().toLowerCase().includes('keep this love forever'));
+  if(!cta||document.getElementById('forever-choice'))return;
+  cta.textContent='Will you keep this forever?';
+  cta.addEventListener('click',function(e){
+   e.preventDefault();e.stopImmediatePropagation();
+   const panel=document.createElement('section');panel.id='forever-choice';
+   panel.innerHTML='<h3>Will you keep this forever? 💌</h3><div class="choices"><button id="forever-yes">Yes ❤️</button><button id="forever-no">No</button></div><div id="forever-answer" aria-live="polite"></div>';
+   cta.insertAdjacentElement('afterend',panel);
+   const no=panel.querySelector('#forever-no'),yes=panel.querySelector('#forever-yes'),area=panel.querySelector('.choices');
+   function dodge(){no.style.position='absolute';no.style.left=Math.floor(Math.random()*Math.max(1,area.clientWidth-no.offsetWidth))+'px';no.style.top=Math.floor(Math.random()*12)+'px';}
+   no.addEventListener('pointerenter',dodge);no.addEventListener('click',function(ev){ev.preventDefault();dodge();});no.addEventListener('touchstart',dodge,{passive:true});
+   yes.addEventListener('click',function(){panel.innerHTML='<div id="forever-answer">I knew you would keep it forever!<span>♥</span></div>';});
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+ setTimeout(setup,1200);
+})();
+</script>`;
+if(!html.includes('id="music-welcome"'))throw new Error('Music welcome screen missing; refusing to change the page.');
+if(!html.includes('id="forever-choice-style"'))html=html.replace('</head>',extra+'\n</head>');
+if(!html.includes('id="forever-choice-script"'))html=html.replace('</body>',script+'\n</body>');
+fs.writeFileSync(file,html);
+console.log('Forever choice interaction added.');
